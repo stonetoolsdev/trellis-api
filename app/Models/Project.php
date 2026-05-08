@@ -64,4 +64,9 @@ class Project extends Model
   {
     return $this->morphMany(Comment::class, 'commentable')->orderBy('created_at');
   }
+
+  public function events()
+  {
+    return $this->hasMany(Event::class);
+  }
 }

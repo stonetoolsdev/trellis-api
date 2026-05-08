@@ -10,6 +10,8 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
@@ -69,5 +71,56 @@ class AuthController extends Controller
     return response()->json([
       'user' => new UserResource(Auth::user()->load('roles')),
     ]);
+  }
+
+  public function acceptInvite(Request $request): JsonResponse
+  {
+    $request->validate([
+      'token' => ['required', 'string'],
+      'email' => ['required', 'email'],
+      'password' => ['required', 'string', 'min:8', 'confirmed'],
+    ]);
+
+    $record = \DB::table('password_reset_tokens')
+      ->where('email', $request->email)
+      ->first();
+
+    if (!$record || !Hash::check($request->token, $record->token)) {
+      return response()->json(['message' => 'Invalid or expired link'], 422);
+    }
+
+    $user = User::where('email', $request->email)->firstOrFail();
+    $user->update([
+      'password' => $request->password,
+      'is_active' => true,
+    ]);
+
+    \DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+
+    return response()->json(['message' => 'Account activated successfully']);
+  }
+
+  public function resetPassword(Request $request): JsonResponse
+  {
+    $request->validate([
+      'token' => ['required', 'string'],
+      'email' => ['required', 'email'],
+      'password' => ['required', 'string', 'min:8', 'confirmed'],
+    ]);
+
+    $record = \DB::table('password_reset_tokens')
+      ->where('email', $request->email)
+      ->first();
+
+    if (!$record || !Hash::check($request->token, $record->token)) {
+      return response()->json(['message' => 'Invalid or expired link'], 422);
+    }
+
+    $user = User::where('email', $request->email)->firstOrFail();
+    $user->update(['password' => $request->password]);
+
+    \DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+
+    return response()->json(['message' => 'Password reset successfully']);
   }
 }

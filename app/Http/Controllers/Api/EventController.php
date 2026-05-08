@@ -14,6 +14,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class EventController extends Controller
 {
@@ -58,6 +59,9 @@ class EventController extends Controller
         'taskLists.tasks.assignees',
         'taskLists.tasks.subtasks',
         'comments.user',
+        'roleAssignments.eventRole',
+        'roleAssignments.user',
+        'inventory.inventoryItem',
       ])
     );
   }
@@ -197,11 +201,29 @@ class EventController extends Controller
 
   public function submissions(Request $request): JsonResponse
   {
-    $events = Event::with(['submission_status', 'approvedBy', 'teams'])
+    $events = Event::with(['approvedBy', 'teams'])
       ->when($request->status, fn($q) => $q->where('submission_status', $request->status))
       ->latest()
       ->get();
 
     return response()->json(['data' => EventResource::collection(($events))]);
+  }
+
+  public function uploadPhoto(Request $request, Event $event): JsonResponse
+  {
+    $request->validate([
+      'photo' => ['required', 'image', 'max:5120'],
+    ]);
+
+    if ($event->featured_photo_path) {
+      Storage::disk('public')->delete($event->featured_photo_path);
+    }
+
+    $path = $request->file('photo')->store('event-photos', 'public');
+    $event->update(['featured_photo_path' => $path]);
+
+    return response()->json([
+      'featured_photo_url' => env('APP_URL') . '/storage/' . $path,
+    ]);
   }
 }

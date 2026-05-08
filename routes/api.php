@@ -8,11 +8,19 @@ use App\Http\Controllers\Api\TaskListController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\CommentController;
 use App\Http\Controllers\Api\SettingsController;
+use App\Http\Controllers\Api\InventoryController;
+use App\Http\Controllers\Api\EventRoleController;
+use App\Http\Controllers\Api\EventRoleAssignmentController;
+use App\Http\Controllers\Api\EventInventoryController;
+use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\SearchController;
 
 Route::prefix('v1')->group(function () {
 
   Route::post('/register', [AuthController::class, 'register']);
   Route::post('/login', [AuthController::class, 'login']);
+  Route::post('/accept-invite', [AuthController::class, 'acceptInvite']);
+  Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
   Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -56,5 +64,37 @@ Route::prefix('v1')->group(function () {
     Route::put('settings/password', [SettingsController::class, 'updatePassword']);
     Route::post('settings/avatar', [SettingsController::class, 'updateAvatar']);
 
+    // Inventory (admin)
+    Route::apiResource('inventory', InventoryController::class);
+
+    // Event Roles (admin)
+    Route::apiResource('event-roles', EventRoleController::class);
+
+    // Event Role Assignments
+    Route::get('events/{event}/role-assignments', [EventRoleAssignmentController::class, 'index']);
+    Route::post('events/{event}/role-assignments', [EventRoleAssignmentController::class, 'store']);
+    Route::put('events/{event}/role-assignments/{assignment}', [EventRoleAssignmentController::class, 'update']);
+    Route::delete('events/{event}/role-assignments/{assignment}', [EventRoleAssignmentController::class, 'destroy']);
+
+    // Event Inventory
+    Route::get('events/{event}/inventory', [EventInventoryController::class, 'index']);
+    Route::post('events/{event}/inventory', [EventInventoryController::class, 'store']);
+    Route::put('events/{event}/inventory/{eventInventory}', [EventInventoryController::class, 'update']);
+    Route::delete('events/{event}/inventory/{eventInventory}', [EventInventoryController::class, 'destroy']);
+
+    // Event Upload Photo
+    Route::post('events/{event}/photo', [EventController::class, 'uploadPhoto']);
+
+    // Users
+    Route::get('users', [UserController::class, 'index']);
+    Route::put('users/{user}/role', [UserController::class, 'updateRole']);
+    Route::delete('users/{user}', [UserController::class, 'destroy']);
+    Route::post('users/{user}/password-reset-link', [UserController::class, 'passwordResetLink']);
+    Route::post('users/invite', [UserController::class, 'inviteLink']);
+    Route::get('users/{user}', [UserController::class, 'show']);
+    Route::get('users/{user}/profile', [UserController::class, 'profile']);
+
+    // Search
+    Route::get('search', [SearchController::class, 'index']);
   });
 });

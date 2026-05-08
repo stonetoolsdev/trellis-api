@@ -15,18 +15,21 @@ class Event extends Model
     'title',
     'slug',
     'description',
+    'goals',
     'type',
     'format',
     'submission_status',
     'lifecycle_status',
     'location',
     'virtual_url',
+    'featured_photo_path',
     'start_date',
     'end_date',
     'rejection_reason',
     'submitted_by',
     'approved_by',
     'approved_at',
+    'project_id',
   ];
 
   protected function casts(): array
@@ -81,5 +84,20 @@ class Event extends Model
   public function comments()
   {
     return $this->morphMany(Comment::class, 'commentable')->orderBy('created_at');
+  }
+
+  public function inventory()
+  {
+    return $this->hasMany(EventInventory::class);
+  }
+
+  public function roleAssignments()
+  {
+    return $this->hasMany(EventRoleAssignment::class);
+  }
+
+  public function project()
+  {
+    return $this->belongsTo(Project::class);
   }
 }

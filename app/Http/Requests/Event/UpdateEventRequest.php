@@ -18,6 +18,7 @@ class UpdateEventRequest extends FormRequest
     return [
       'title' => ['sometimes', 'string', 'max:255'],
       'description' => ['nullable', 'string'],
+      'goals' => ['nullable', 'string'],
       'type' => ['nullable', 'string', 'max:100'],
       'format' => ['sometimes', new Enum(EventFormat::class)],
       'location' => ['nullable', 'string', 'max:255'],
@@ -26,6 +27,7 @@ class UpdateEventRequest extends FormRequest
       'end_date' => ['nullable', 'date', 'after:start_date'],
       'team_ids' => ['nullable', 'array'],
       'team_ids.*' => ['uuid', 'exists:teams,id'],
+      'project_id' => ['nullable', 'uuid', 'exists:projects,id'],
     ];
   }
 }
